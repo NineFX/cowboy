@@ -16,7 +16,7 @@
 -module(cowboy_static).
 
 -export([init/2]).
--export([options/2]).
+-export([expires/2]).
 -export([malformed_request/2]).
 -export([forbidden/2]).
 -export([content_types_provided/2]).
@@ -57,15 +57,15 @@ init(Req, {Name, App, Path})
 init(Req, Opts) ->
 	init_opts(Req, Opts).
 
--spec options(Req, State) -> {ok, Req, State}
+-spec expires(Req, State) -> {undefined, Req, State}
 	when Req::cowboy_req:req(), State::state().
-options(Req, State={_, _, Extra}) ->
+expires(Req, State={_, _, Extra}) ->
 	case lists:keyfind(headers, 1, Extra) of
 		%% We simulate the callback not being exported.
 		false ->
 			no_call;
 		{headers, Headers} when is_list(Headers) ->
-			{ok, cowboy_req:set_resp_headers(Headers, Req), State}
+			{undefined, cowboy_req:set_resp_headers(Headers, Req), State}
 	end.
 init_opts(Req, {priv_file, App, Path, Extra}) ->
 	{PrivPath, HowToAccess} = priv_path(App, Path),
