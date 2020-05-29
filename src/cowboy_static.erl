@@ -16,6 +16,7 @@
 -module(cowboy_static).
 
 -export([init/2]).
+-export([options/2]).
 -export([malformed_request/2]).
 -export([forbidden/2]).
 -export([content_types_provided/2]).
@@ -28,9 +29,10 @@
 
 -type extra_charset() :: {charset, module(), function()} | {charset, binary()}.
 -type extra_etag() :: {etag, module(), function()} | {etag, false}.
+-type extra_headers() :: {headers, [{binary(), binary()}]}.
 -type extra_mimetypes() :: {mimetypes, module(), function()}
 	| {mimetypes, binary() | {binary(), binary(), [{binary(), binary()}]}}.
--type extra() :: [extra_charset() | extra_etag() | extra_mimetypes()].
+-type extra() :: [extra_charset() | extra_etag() | extra_mimetypes() | extra_headers()].
 -type opts() :: {file | dir, string() | binary()}
 	| {file | dir, string() | binary(), extra()}
 	| {priv_file | priv_dir, atom(), string() | binary()}
@@ -55,6 +57,16 @@ init(Req, {Name, App, Path})
 init(Req, Opts) ->
 	init_opts(Req, Opts).
 
+-spec options(Req, State) -> {ok, Req, State}
+	when Req::cowboy_req:req(), State::state().
+options(Req, State={_, _, Extra}) ->
+	case lists:keyfind(headers, 1, Extra) of
+		%% We simulate the callback not being exported.
+		false ->
+			no_call;
+		{headers, Headers} when is_list(Headers) ->
+			{ok, cowboy_req:set_resp_headers(Headers, Req), State}
+	end.
 init_opts(Req, {priv_file, App, Path, Extra}) ->
 	{PrivPath, HowToAccess} = priv_path(App, Path),
 	init_info(Req, absname(PrivPath), HowToAccess, Extra);

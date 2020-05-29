@@ -161,3 +161,15 @@ You can also completely disable etag handling:
 {"/assets/[...]", cowboy_static, {priv_dir, my_app, "static/assets",
     [{etag, false}]}}
 ----
+
+=== Add customer headers
+
+You can add a list of custom HTTP headers to your responses.
+
+[source,erlang]
+----
+{"/assets/[...]", cowboy_static, {priv_dir, my_app, "static/assets",
+    [{headers, [
+        {<<"access-control-allow-origin">>, <<"*">>},
+        {<<"strict-transport-security">>, <<"max-age=31536000">>}]}]}}
+----

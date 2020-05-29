@@ -174,6 +174,8 @@ init_dispatch(Config) ->
 			[{etag, ?MODULE, do_etag_crash}]}},
 		{"/etag/disable", cowboy_static, {file, config(static_dir, Config) ++ "/style.css",
 			[{etag, false}]}},
+		{"/headers", cowboy_static,cowboy_static, {priv_dir, ct_helper, "static",
+			[{headers, [{<<"access-control-allow-origin">>, <<"*">>}]}]}},
 		{"/bad", cowboy_static, bad},
 		{"/bad/priv_dir/app/[...]", cowboy_static, {priv_dir, bad_app, "static"}},
 		{"/bad/priv_dir/no-priv/[...]", cowboy_static, {priv_dir, cowboy, "static"}},
@@ -576,6 +578,12 @@ file(Config) ->
 	doc("Get a file with hardcoded route."),
 	{200, Headers, <<"body{color:red}\n">>} = do_get("/file/style.css", Config),
 	{_, <<"text/css">>} = lists:keyfind(<<"content-type">>, 1, Headers),
+	ok.
+
+headers(Config) ->
+	doc("Add custom headers to a response."),
+	{200, Headers, _} = do_get("/mime/all/file.cowboy", Config),
+	{_, <<"*">>} = lists:keyfind(<<"access-control-allow-origin">>, 1, Headers),
 	ok.
 
 if_match(Config) ->
